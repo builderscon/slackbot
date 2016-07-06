@@ -4,9 +4,9 @@ go:
 install:
   - echo "skipping install step"
 env:
-  - TEST_DIR=worker/acmebot
-  - TEST_DIR=worker/acmebot-k8s
-  - TEST_DIR=worker/deploybot
-  - TEST_DIR=worker/deploybot-k8s
+  - TEST_DIR=acmebot
+  - TEST_DIR=acmebot-k8s
+  - TEST_DIR=deploybot
+  - TEST_DIR=deploybot-k8s
 script:
   - cd $TEST_DIR && ./travis.sh

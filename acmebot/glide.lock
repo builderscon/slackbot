@@ -1,8 +1,8 @@
 hash: ab1c80ba2b7cf1871274cfcbbed5b3c1ff84dbb3c75d4b864b8e063e19b0c4b1
-updated: 2016-07-07T11:45:23.808884592+09:00
+updated: 2016-07-07T12:04:36.455818695+09:00
 imports:
 - name: github.com/builderscon/slackbot
-  version: 6bfd3e9fdc8eafe760242d57726e1d3a135fa2df
+  version: bfdae96765562a9b72f5ed1b7b072c34685cbc24
   subpackages:
   - slacksub
 - name: github.com/davecgh/go-spew
@@ -14,7 +14,7 @@ imports:
   subpackages:
   - proto
 - name: github.com/lestrrat/go-cloud-acmeagent
-  version: 34348e7e04c84a876df7dd13a300d0759f68854d
+  version: a888f73c388827ad2e7fbe9c99386ac0defb3cb6
   subpackages:
   - gcp
   - store

@@ -510,16 +510,24 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 	}
 
 	// Should be one
-	oldips := make([]string, len(rrslist.Rrsets[0].Rrdatas))
-	newips := make([]string, len(rrslist.Rrsets[0].Rrdatas)+1)
-	for i, rrd := range rrslist.Rrsets[0].Rrdatas {
-		oldips[i] = rrd
-		newips[i] = rrd
+
+	var oldips []string
+	var newips []string
+	if len(rrslist.Rrsets) <= 0 { // No oldips
+		newips = make([]string, 1)
+	} else {
+		oldips = make([]string, len(rrslist.Rrsets[0].Rrdatas))
+		newips = make([]string, len(rrslist.Rrsets[0].Rrdatas)+1)
+		for i, rrd := range rrslist.Rrsets[0].Rrdatas {
+			oldips[i] = rrd
+			newips[i] = rrd
+		}
 	}
 	newips[len(newips)-1] = newingress.Status.LoadBalancer.Ingress[0].IP
 
-	ch := dns.Change{
-		Deletions: []*dns.ResourceRecordSet{
+	ch := dns.Change{}
+	if len(oldips) > 0 {
+		ch.Deletions = []*dns.ResourceRecordSet{
 			&dns.ResourceRecordSet{
 				Kind:    "dns#resourceRecordSet",
 				Name:    in.Name + ".", // need to terminate with a "."
@@ -527,15 +535,15 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 				Ttl:     60,
 				Type:    "A",
 			},
-		},
-		Additions: []*dns.ResourceRecordSet{
-			&dns.ResourceRecordSet{
-				Kind:    "dns#resourceRecordSet",
-				Name:    in.Name + ".", // need to terminate with a "."
-				Rrdatas: newips,
-				Ttl:     60,
-				Type:    "A",
-			},
+		}
+	}
+	ch.Additions = []*dns.ResourceRecordSet{
+		&dns.ResourceRecordSet{
+			Kind:    "dns#resourceRecordSet",
+			Name:    in.Name + ".", // need to terminate with a "."
+			Rrdatas: newips,
+			Ttl:     60,
+			Type:    "A",
 		},
 	}
 

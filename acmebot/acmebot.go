@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/builderscon/slackbot/acmebot/slacksub"
+	"github.com/builderscon/slackbot/slacksub"
 	"github.com/lestrrat/go-cloud-acmeagent"
 	"github.com/lestrrat/go-jwx/jwk"
 	"github.com/lestrrat/go-pdebug"

@@ -196,7 +196,10 @@ func (sub *Subscriber) processMessage(msg *pubsub.Message) error {
 	defer func() {
 		if err := recover(); err != nil {
 			// Try to notify the client
-			sub.Reply(ev.Channel, fmt.Sprintf("there was an error:\n```\n%s\n```\n"err.Error()))
+			sub.Reply(
+				ev.Channel,
+				fmt.Sprintf("there was an error:\n```\n%s\n```\n", err.Error()),
+			)
 		}
 	}()
 	return cb(&ev)

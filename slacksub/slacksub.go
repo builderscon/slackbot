@@ -198,7 +198,7 @@ func (sub *Subscriber) processMessage(msg *pubsub.Message) error {
 			// Try to notify the client
 			sub.Reply(
 				ev.Channel,
-				fmt.Sprintf("there was an error:\n```\n%s\n```\n", err.Error()),
+				fmt.Sprintf("there was an error:\n```\n%s\n```\n", err),
 			)
 		}
 	}()

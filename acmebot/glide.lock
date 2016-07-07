@@ -1,5 +1,5 @@
 hash: ab1c80ba2b7cf1871274cfcbbed5b3c1ff84dbb3c75d4b864b8e063e19b0c4b1
-updated: 2016-07-07T13:53:58.180099671+09:00
+updated: 2016-07-07T14:10:04.446249991+09:00
 imports:
 - name: github.com/builderscon/slackbot
   version: bfdae96765562a9b72f5ed1b7b072c34685cbc24
@@ -14,7 +14,7 @@ imports:
   subpackages:
   - proto
 - name: github.com/lestrrat/go-cloud-acmeagent
-  version: bf475ffc5838ee624bec0541996666e89375e9ef
+  version: 5d42ba789ef10f94804c8257594d8d44a2cdf008
   subpackages:
   - gcp
   - store

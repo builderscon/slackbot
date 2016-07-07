@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/builderscon/octav/worker/slacksub"
+	"github.com/builderscon/slackbot/slacksub"
 	"github.com/lestrrat/go-pdebug"
 	"github.com/nlopes/slack"
 	"golang.org/x/net/context"

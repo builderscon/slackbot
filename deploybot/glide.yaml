@@ -1,8 +1,8 @@
-package: github.com/builderscon/octav/worker/deploybot
+package: github.com/builderscon/slackbot/deploybot
 import:
-- package: github.com/builderscon/octav
+- package: github.com/builderscon/slackbot
   subpackages:
-  - worker/deploybot/slacksub
+  - deploybot/slacksub
 - package: github.com/lestrrat/go-pdebug
 - package: github.com/nlopes/slack
 - package: google.golang.org/cloud

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/builderscon/octav/worker/deploybot/slacksub"
+	"github.com/builderscon/slackbot/deploybot/slacksub"
 	"github.com/lestrrat/go-pdebug"
 	"github.com/nlopes/slack"
 	"golang.org/x/net/context"

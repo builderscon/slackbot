@@ -1,4 +1,4 @@
-package: github.com/builderscon/octav/worker/deploybot-k8s
+package: github.com/builderscon/slackbot/deploybot-k8s
 import:
 - package: github.com/lestrrat/go-pdebug
 - package: google.golang.org/api

@@ -240,42 +240,45 @@ func (b *Bot) IngressDelete(in Incoming) (err error) {
 				return err
 			}
 
-			// Theres should be just one
-
-			oldips := make([]string, 0, len(rrslist.Rrsets[0].Rrdatas))
-			newips := make([]string, 0, len(rrslist.Rrsets[0].Rrdatas))
-			for _, rrd := range rrslist.Rrsets[0].Rrdatas {
-				oldips = append(oldips, rrd)
-				if rrd != addr {
-					newips = append(newips, rrd)
+			if len(rrslist.Rrsets) <= 0 {
+				in.reply(":white_check_mark: ingress's IP '" + addr + "' does not exist in DNS")
+			} else {
+				// Theres should be just one
+				oldips := make([]string, 0, len(rrslist.Rrsets[0].Rrdatas))
+				newips := make([]string, 0, len(rrslist.Rrsets[0].Rrdatas))
+				for _, rrd := range rrslist.Rrsets[0].Rrdatas {
+					oldips = append(oldips, rrd)
+					if rrd != addr {
+						newips = append(newips, rrd)
+					}
 				}
-			}
 
-			in.reply(":white_check_mark: removing '" + addr + "' from DNS entries for '" + hostname + "'")
-			ch := dns.Change{
-				Deletions: []*dns.ResourceRecordSet{
-					&dns.ResourceRecordSet{
-						Kind:    "dns#resourceRecordSet",
-						Name:    hostname + ".", // need to terminate with a "."
-						Rrdatas: oldips,
-						Ttl:     60,
-						Type:    "A",
+				in.reply(":white_check_mark: removing '" + addr + "' from DNS entries for '" + hostname + "'")
+				ch := dns.Change{
+					Deletions: []*dns.ResourceRecordSet{
+						&dns.ResourceRecordSet{
+							Kind:    "dns#resourceRecordSet",
+							Name:    hostname + ".", // need to terminate with a "."
+							Rrdatas: oldips,
+							Ttl:     60,
+							Type:    "A",
+						},
 					},
-				},
-				Additions: []*dns.ResourceRecordSet{
-					&dns.ResourceRecordSet{
-						Kind:    "dns#resourceRecordSet",
-						Name:    hostname + ".", // need to terminate with a "."
-						Rrdatas: newips,
-						Ttl:     60,
-						Type:    "A",
+					Additions: []*dns.ResourceRecordSet{
+						&dns.ResourceRecordSet{
+							Kind:    "dns#resourceRecordSet",
+							Name:    hostname + ".", // need to terminate with a "."
+							Rrdatas: newips,
+							Ttl:     60,
+							Type:    "A",
+						},
 					},
-				},
-			}
+				}
 
-			if _, err := b.dns.Changes.Create(b.projectID, b.zone, &ch).Do(); err != nil {
-				in.reply(":exclamation: failed to delete DNS entries for '" + hostname + "' (" + addr + ")")
-				return err
+				if _, err := b.dns.Changes.Create(b.projectID, b.zone, &ch).Do(); err != nil {
+					in.reply(":exclamation: failed to delete DNS entries for '" + hostname + "' (" + addr + ")")
+					return err
+				}
 			}
 		default:
 			in.reply(":exclamation: ingress '" + in.Name + "' has more than one IP address. Don't know what to do:")

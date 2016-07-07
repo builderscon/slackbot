@@ -406,7 +406,7 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 		in.Args = map[string]string{}
 	}
 	in.Args["timestamp"] = time.Now().Format("20060102-150405")
-	if err := t.ExecuteTemplate(outf, in.Name+".yaml.tmpl", in.Args); err != nil {
+	if err := t.ExecuteTemplate(outf, in.Name+".yaml", in.Args); err != nil {
 		in.reply(":exclamation: failed to execute template: " + err.Error())
 		return err
 	}

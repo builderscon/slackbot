@@ -265,8 +265,8 @@ func (b *Bot) handleCertIssueCmd(ctx *acmectx, domain string) (err error) {
 
 	b.reply(ctx, ":white_check_mark: Issueing certificates for *"+domain+"*")
 
-	var cert *x509.Certificate
-	if err := b.acmestore.LoadCert(domain, cert); err != nil {
+	var cert x509.Certificate
+	if err := b.acmestore.LoadCert(domain, &cert); err != nil {
 		b.reply(ctx, ":white_check_mark: Certificates for domain not found in storage.")
 	} else {
 		if time.Now().After(cert.NotAfter) {

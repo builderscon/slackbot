@@ -196,7 +196,6 @@ func (sub *Subscriber) processMessage(msg *pubsub.Message) error {
 
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println(err.Error())
 			debug.PrintStack()
 			// Try to notify the client
 			sub.Reply(

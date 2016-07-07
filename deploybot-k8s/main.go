@@ -383,7 +383,7 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 	}
 
 	// Look for templates
-	tmplf := filepath.Join(b.root, "ingress", in.Name+".yaml.tmpl")
+	tmplf := filepath.Join(b.root, "ingress", in.Name+".yaml")
 	in.reply(":white_check_mark: Looking for template file...")
 	if _, err := os.Stat(tmplf); err != nil {
 		in.reply(":exclamation: template file '" + tmplf + "' not found")

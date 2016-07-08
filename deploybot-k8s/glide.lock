@@ -1,5 +1,5 @@
 hash: 110cb19aa656dab306024d22106141bffadb4358fccc63ae19bf056857d797c5
-updated: 2016-07-08T09:23:46.375618709+09:00
+updated: 2016-07-08T14:01:46.846383361+09:00
 imports:
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
@@ -169,6 +169,8 @@ imports:
   - libcontainer/utils
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
+- name: github.com/pkg/errors
+  version: a2d6902c6d2a2f194eb3fb474981ab7867c81505
 - name: github.com/prometheus/client_golang
   version: 3b78d7a77f51ccbc364d4bc170920153022cfd08
   subpackages:
@@ -235,7 +237,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: a83829b6f1293c91addabc89d0571c246397bbf4
 - name: k8s.io/kubernetes
-  version: 8ea57733b49bfa862248f67f56e34e48ac16537c
+  version: 42805f53b06084c30561cc71222491015523d033
   subpackages:
   - pkg/api
   - pkg/apis/extensions

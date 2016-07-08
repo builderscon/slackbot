@@ -635,13 +635,17 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 		return errors.Errorf("could not find ip address(es) for domain name '%s'", domain)
 	}
 
-	reply(":white_check_mark: Following records will be removed from domain '" + domain + "'")
+	reply(":white_check_mark: For domain '" + domain + "'")
 	for addr := range found {
-		reply(":down: IP address '" + addr + "' will be removed")
+		reply(":arrow_heading_down: IP address '" + addr + "' will be removed")
+	}
+	for _, addr := range newips {
+		reply(":arrow_heading_up: IP address '" + addr + "' will be kept")
 	}
 
-	ch := dns.Change{
-		Deletions: []*dns.ResourceRecordSet{
+	ch := dns.Change{}
+	if len(oldips) > 0 {
+		ch.Deletions = []*dns.ResourceRecordSet{
 			&dns.ResourceRecordSet{
 				Kind:    "dns#resourceRecordSet",
 				Name:    domain + ".", // need to terminate with a "."
@@ -649,8 +653,11 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 				Ttl:     60,
 				Type:    "A",
 			},
-		},
-		Additions: []*dns.ResourceRecordSet{
+		}
+	}
+
+	if len(newips) > 0 {
+		ch.Additions = []*dns.ResourceRecordSet{
 			&dns.ResourceRecordSet{
 				Kind:    "dns#resourceRecordSet",
 				Name:    domain + ".", // need to terminate with a "."
@@ -658,7 +665,7 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 				Ttl:     60,
 				Type:    "A",
 			},
-		},
+		}
 	}
 
 	if _, err := b.dns.Changes.Create(b.projectID, b.zone, &ch).Do(); err != nil {

@@ -1,0 +1,13 @@
+package: github.com/builderscon/slackbot/slackrouter
+import:
+- package: github.com/builderscon/slackbot
+  subpackages:
+  - slacksub
+- package: github.com/lestrrat/go-pdebug
+- package: github.com/nlopes/slack
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: google.golang.org/cloud
+  subpackages:
+  - pubsub

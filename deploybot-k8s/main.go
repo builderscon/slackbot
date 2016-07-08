@@ -512,7 +512,6 @@ func (b *Bot) fetchDNSResourceRecordSets(domain string) (*dns.ResourceRecordSets
 }
 
 func (b *Bot) activateIngress(reply ReplyFunc, name string) error {
-	reply(":white_check_mark: Updating DNS records...")
 	// dns client doesn't exist (not now, at least), so we access
 	// the api directly. note that latest google.golang.org/cloud is
 	// incompatible with k8s, but google.golang.org/api is OK
@@ -577,6 +576,7 @@ func (b *Bot) activateIngress(reply ReplyFunc, name string) error {
 		},
 	}
 
+	reply(":white_check_mark: Updating DNS records...")
 	if _, err := b.dns.Changes.Create(b.projectID, b.zone, &ch).Do(); err != nil {
 		reply(":exclamation: failed to change DNS entries for '" + domain + "'")
 		return err
@@ -668,6 +668,7 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 		}
 	}
 
+	reply(":white_check_mark: Updating DNS records...")
 	if _, err := b.dns.Changes.Create(b.projectID, b.zone, &ch).Do(); err != nil {
 		return errors.Wrap(err, "failed to delete DNS entries")
 	}

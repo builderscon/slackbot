@@ -157,9 +157,11 @@ type replier interface {
 }
 
 func (b *Bot) handleHelpCmd(ctx replier) error {
-	return ctx.Reply(`botname ingress create <domain> [key=value ...]
-botname ingress delete <domain>
-botname ingress get <domain>
+	return ctx.Reply(`botname ingress activate <name>
+botname ingress deactivate <name>
+botname ingress create <domain> [key=value ...]
+botname ingress delete <name>
+botname ingress get <name>
 botname ingress list`)
 }
 
@@ -232,12 +234,6 @@ func (b *Bot) handleIngressCmd(ctx *ingressctx, cmd []string) error {
 		args.Mode = "delete"
 	case "activate", "deactivate":
 		args.Mode = cmd[0]
-		if len(cmd) < 3 {
-			return ctx.Reply("expected domain name")
-		}
-		args.Args = map[string]string{
-			"domain": cmd[2],
-		}
 	case "create":
 		args.Mode = "create"
 

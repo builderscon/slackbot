@@ -616,7 +616,7 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 	}
 
 	// Theres should be just one Rrsets
-	oldips := make([]string, 0, len(rrslist.Rrsets[0].Rrdatas))
+	oldips := make([]string, len(rrslist.Rrsets[0].Rrdatas))
 	newips := make([]string, 0, len(rrslist.Rrsets[0].Rrdatas))
 	found := make(map[string]struct{})
 	copy(oldips, rrslist.Rrsets[0].Rrdatas)

@@ -32,6 +32,8 @@ import (
 	"k8s.io/kubernetes/pkg/util/yaml"
 )
 
+const domainKey = "domain"
+
 func main() {
 	os.Exit(_main())
 }
@@ -230,8 +232,8 @@ func (b *Bot) IngressDelete(in Incoming) (err error) {
 		return err
 	}
 
-	hostname := ingress.Labels["hostname"]
-	if hostname != "" {
+	domain := ingress.Labels[domainKey]
+	if domain != "" {
 		// Does this ingress have an IP address?
 		switch len(ingress.Status.LoadBalancer.Ingress) {
 		case 0:
@@ -274,9 +276,9 @@ func (b *Bot) IngressGet(in Incoming) (err error) {
 		return err
 	}
 
-	label, err := labels.Parse("hostname=" + in.Name)
+	label, err := labels.Parse("domain=" + in.Name)
 	if err != nil {
-		in.reply(":exclamation: failed to parse label 'hostname=" + in.Name + "': " + err.Error())
+		in.reply(":exclamation: failed to parse label 'domain=" + in.Name + "': " + err.Error())
 		return err
 	}
 
@@ -463,8 +465,8 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 		return err
 	}
 
-	if hostname := newingress.Labels["hostname"]; hostname != "" {
-		in.reply(":white_check_mark: Found associated domain name '" + hostname + "'")
+	if domain := newingress.Labels[domainKey]; domain != "" {
+		in.reply(":white_check_mark: Found associated domain name '" + domain + "'")
 		if err := errors.Wrap(b.activateIngress(in.reply, newname), "failed to activate ingress"); err != nil {
 			in.reply(":exclamation: " + err.Error())
 			return err
@@ -529,7 +531,7 @@ func (b *Bot) activateIngress(reply ReplyFunc, name string) error {
 		return errors.Errorf("failed to find ingress '%s'", name)
 	}
 
-	domain := ingress.Labels["hostname"]
+	domain := ingress.Labels[domainKey]
 	if domain == "" {
 		return errors.Errorf("domain name not defined in ingresss '%s'", name)
 	}
@@ -605,7 +607,7 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 		addrs[ing.IP] = struct{}{}
 	}
 
-	domain := ingress.Labels["hostname"]
+	domain := ingress.Labels[domainKey]
 	if domain == "" {
 		return errors.Errorf("domain name not defined in ingresss '%s'", name)
 	}

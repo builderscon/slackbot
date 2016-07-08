@@ -242,8 +242,11 @@ func (b *Bot) IngressDelete(in Incoming) (err error) {
 			addr := ingress.Status.LoadBalancer.Ingress[0].IP
 			in.reply(":white_check_mark: ingress has an IP address '" + addr + "'")
 
+			// It's okay if we don't succeed deleting the IP address
+			// but make sure the user know
 			if err := errors.Wrapf(b.deactivateIngress(in.reply, in.Name), "failed to deactivate ingress '%s'", in.Name); err != nil {
-				return err
+				in.reply(":exclamation: Failed to deactivate ingress: " + err.Error())
+				in.reply(":question: If you believe this should succeed, check the DNS entries")
 			}
 
 		default:
@@ -637,7 +640,8 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 		newips = append(newips, rrd)
 	}
 
-	if len(found) == 0 {
+	// Only muck with DNS if we have our IP address in the record set
+	if len(found) > 0 {
 		return errors.Errorf("could not find ip address(es) for domain name '%s'", domain)
 	}
 

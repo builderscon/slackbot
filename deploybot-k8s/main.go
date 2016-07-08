@@ -240,7 +240,7 @@ func (b *Bot) IngressDelete(in Incoming) (err error) {
 			addr := ingress.Status.LoadBalancer.Ingress[0].IP
 			in.reply(":white_check_mark: ingress has an IP address '" + addr + "'")
 
-			if err := errors.Wrapf(b.deactivateIngress(in.reply, in.Name, hostname), "failed to deactivate ingress '%s'", in.Name); err != nil {
+			if err := errors.Wrapf(b.deactivateIngress(in.reply, in.Name), "failed to deactivate ingress '%s'", in.Name); err != nil {
 				return err
 			}
 
@@ -465,7 +465,7 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 
 	if hostname := newingress.Labels["hostname"]; hostname != "" {
 		in.reply(":white_check_mark: Found associated domain name '" + hostname + "'")
-		if err := errors.Wrap(b.activateIngress(in.reply, newname, hostname), "failed to activate ingress"); err != nil {
+		if err := errors.Wrap(b.activateIngress(in.reply, newname), "failed to activate ingress"); err != nil {
 			in.reply(":exclamation: " + err.Error())
 			return err
 		}
@@ -484,7 +484,7 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 
 func (b *Bot) IngressActivate(in Incoming) error {
 	in.reply(":white_check_mark: Activating ingress " + in.Name + " for domain " + in.Args["domain"])
-	if err := b.activateIngress(in.reply, in.Name, in.Args["domain"]); err != nil {
+	if err := b.activateIngress(in.reply, in.Name); err != nil {
 		in.reply(":exclamation: Failed to activate ingress: " + err.Error())
 		return err
 	}
@@ -492,7 +492,7 @@ func (b *Bot) IngressActivate(in Incoming) error {
 }
 
 func (b *Bot) IngressDeactivate(in Incoming) error {
-	if err := b.deactivateIngress(in.reply, in.Name, in.Args["domain"]); err != nil {
+	if err := b.deactivateIngress(in.reply, in.Name); err != nil {
 		in.reply(":exclamation: Failed to deactivate ingress: " + err.Error())
 		return err
 	}
@@ -511,16 +511,11 @@ func (b *Bot) fetchDNSResourceRecordSets(domain string) (*dns.ResourceRecordSets
 	return rrslist, nil
 }
 
-func (b *Bot) activateIngress(reply ReplyFunc, name, domain string) error {
+func (b *Bot) activateIngress(reply ReplyFunc, name string) error {
 	reply(":white_check_mark: Updating DNS records...")
 	// dns client doesn't exist (not now, at least), so we access
 	// the api directly. note that latest google.golang.org/cloud is
 	// incompatible with k8s, but google.golang.org/api is OK
-
-	rrslist, err := b.fetchDNSResourceRecordSets(domain)
-	if err != nil {
-		return errors.Wrapf(err, "failed to get resource record sets for '%s'", domain)
-	}
 
 	cl, err := unversioned.NewInCluster()
 	if err != nil {
@@ -530,6 +525,16 @@ func (b *Bot) activateIngress(reply ReplyFunc, name, domain string) error {
 	ingress, err := b.fetchIngressByName(cl, name)
 	if err != nil {
 		return errors.Errorf("failed to find ingress '%s'", name)
+	}
+
+	domain := ingress.Labels["hostname"]
+	if domain == "" {
+		return errors.Errorf("domain name not defined in ingresss '%s'", name)
+	}
+
+	rrslist, err := b.fetchDNSResourceRecordSets(domain)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get resource record sets for '%s'", domain)
 	}
 
 	additionalIPs := len(ingress.Status.LoadBalancer.Ingress)
@@ -580,7 +585,7 @@ func (b *Bot) activateIngress(reply ReplyFunc, name, domain string) error {
 	return nil
 }
 
-func (b *Bot) deactivateIngress(reply ReplyFunc, name, domain string) error {
+func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 	cl, err := unversioned.NewInCluster()
 	if err != nil {
 		return errors.Wrap(err, "failed to create k8s client")
@@ -594,6 +599,11 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name, domain string) error {
 	addrs := make(map[string]struct{})
 	for _, ing := range ingress.Status.LoadBalancer.Ingress {
 		addrs[ing.IP] = struct{}{}
+	}
+
+	domain := ingress.Labels["hostname"]
+	if domain == "" {
+		return errors.Errorf("domain name not defined in ingresss '%s'", name)
 	}
 
 	rrslist, err := b.fetchDNSResourceRecordSets(domain)

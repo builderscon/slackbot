@@ -488,6 +488,9 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 			}
 
 			if len(newingress.Status.LoadBalancer.Ingress) > 0 {
+				for _, ing := range newingress.Status.LoadBalancer.Ingress {
+					in.reply(":up: got IP address " + ing.IP)
+				}
 				close(gotIP)
 				return
 			}
@@ -512,21 +515,23 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 		return err
 	}
 
-	// Should be one
-
+	additionalIPs := len(newingress.Status.LoadBalancer.Ingress)
 	var oldips []string
 	var newips []string
 	if len(rrslist.Rrsets) <= 0 { // No oldips
-		newips = make([]string, 1)
+		newips = make([]string, additionalIPs)
 	} else {
 		oldips = make([]string, len(rrslist.Rrsets[0].Rrdatas))
-		newips = make([]string, len(rrslist.Rrsets[0].Rrdatas)+1)
+		newips = make([]string, len(rrslist.Rrsets[0].Rrdatas)+additionalIPs)
 		for i, rrd := range rrslist.Rrsets[0].Rrdatas {
 			oldips[i] = rrd
 			newips[i] = rrd
 		}
 	}
-	newips[len(newips)-1] = newingress.Status.LoadBalancer.Ingress[0].IP
+	for i, ing := range newingress.Status.LoadBalancer.Ingress {
+		in.reply(":up: got IP address " + ing.IP)
+		newips[len(oldips)+i] = ing.IP
+	}
 
 	ch := dns.Change{}
 	if len(oldips) > 0 {

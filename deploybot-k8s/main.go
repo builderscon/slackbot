@@ -483,19 +483,22 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 }
 
 func (b *Bot) IngressActivate(in Incoming) error {
-	in.reply(":white_check_mark: Activating ingress " + in.Name + " for domain " + in.Args["domain"])
+	in.reply(":white_check_mark: Activating ingress " + in.Name)
 	if err := b.activateIngress(in.reply, in.Name); err != nil {
 		in.reply(":exclamation: Failed to activate ingress: " + err.Error())
 		return err
 	}
+	in.reply(":tada: Aactivated ingress " + in.Name)
 	return nil
 }
 
 func (b *Bot) IngressDeactivate(in Incoming) error {
+	in.reply(":white_check_mark: Deactivating ingress " + in.Name)
 	if err := b.deactivateIngress(in.reply, in.Name); err != nil {
 		in.reply(":exclamation: Failed to deactivate ingress: " + err.Error())
 		return err
 	}
+	in.reply(":tada: Deactivated ingress " + in.Name)
 	return nil
 }
 

@@ -230,6 +230,10 @@ func (b *Bot) handleIngressCmd(ctx *ingressctx, cmd []string) error {
 		args.Mode = "get"
 	case "delete":
 		args.Mode = "delete"
+	case "activate":
+		args.Mode = "activate"
+	case "deactivate":
+		args.Mode = "deactivate"
 	case "create":
 		args.Mode = "create"
 

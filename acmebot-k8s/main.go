@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/lestrrat/go-pdebug"
+	"github.com/pkg/errors"
 
 	"k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/client/unversioned"
@@ -28,6 +29,47 @@ type Incoming struct {
 	Channel string `json:"channel"`
 	Cert    string `json:"tls.crt"`
 	Key     string `json:"tls.key"`
+	slackgw string            // used internally
+	token   string            // used internally
+}
+
+func (in *Incoming) reply(s string) (err error) {
+	if pdebug.Enabled {
+		g := pdebug.Marker("Incoming.reply").BindError(&err)
+		defer g.End()
+
+		pdebug.Printf("Posting to '%s'", in.slackgw+"/post")
+	}
+
+	values := url.Values{
+		"channel": []string{in.Channel},
+		"message": []string{s},
+	}
+	buf := bytes.Buffer{}
+	buf.WriteString(values.Encode())
+
+	req, err := http.NewRequest("POST", in.slackgw+"/post", &buf)
+	if err != nil {
+		return err
+	}
+
+	if token := in.token; token != "" {
+		req.Header.Set("X-Slackgw-Auth", token)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		if pdebug.Enabled {
+			pdebug.Printf("Slack gateway returned with '%s'", res.Status)
+		}
+		return errors.New("bad response from slack gateway: " + res.Status)
+	}
+
+	return err
 }
 
 func _main() int {
@@ -92,7 +134,16 @@ func _main() int {
 			}
 			continue
 		}
-		go upload(slackgw, authtoken, ns, in)
+		in.slackgw = slackgw
+		in.token = authtoken
+
+		go func() {
+			if err := upload(slackgw, authtoken, ns, in); err != nil {
+				in.reply(":exclamation: failed to upload secret: " + err.Error())
+				return
+			}
+			in.reply(":tada: Successfully created secret " + in.Name)
+		}()
 	}
 
 	return 0
@@ -122,33 +173,13 @@ func upload(slackgw, authtoken, ns string, in Incoming) (err error) {
 	if err != nil {
 		fmt.Printf("Failed upload secret %s: failed to create k8s client: %s", in.Name, err)
 		// send notice to slack
-		return err
+		return errors.Wrap(err, "failed to create k8s client")
 	}
 
 	svc := cl.Secrets(ns)
 	if _, err := svc.Create(&s); err != nil {
 		fmt.Printf("Failed upload secret %s: failed to create k8s secret: %s", in.Name, err)
-		return err
-	}
-
-	values := url.Values{
-		"channel": []string{in.Channel},
-		"message": []string{":tada: Successfully created secret " + in.Name},
-	}
-	buf := bytes.Buffer{}
-	buf.WriteString(values.Encode())
-
-	req, err := http.NewRequest("POST", slackgw+"/post", &buf)
-	if err != nil {
-		return err
-	}
-	if authtoken != "" {
-		req.Header.Set("X-Slackgw-Auth", authtoken)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	_, err = http.DefaultClient.Do(req)
-	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create k8s secret")
 	}
 	return nil
 }

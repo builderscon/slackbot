@@ -1,5 +1,5 @@
-hash: 105e2824fc2bb45059a49e00fb023de86ed3b06f599f34744e40a16f8c7e76b7
-updated: 2016-06-03T19:39:30.610004356+09:00
+hash: ef37f3cb2d7cbf95f083ad5309f36aabe5a94d65622e33f3f3b8d27ab16c306c
+updated: 2016-07-08T09:14:45.875634186+09:00
 imports:
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
@@ -15,10 +15,20 @@ imports:
   - key
   - oauth2
   - oidc
+- name: github.com/coreos/go-systemd
+  version: 4484981625c1a6a2ecb40a390fcb6a9bcfee76e3
+  subpackages:
+  - activation
+  - daemon
+  - dbus
+  - journal
+  - unit
+  - util
 - name: github.com/coreos/pkg
-  version: fa94270d4bac0d8ae5dc6b71894e251aada93f74
+  version: 7f080b6c11ac2d2347c3cd7521e810207ea1a041
   subpackages:
   - capnslog
+  - dlopen
   - health
   - httputil
   - timeutil
@@ -45,7 +55,7 @@ imports:
 - name: github.com/docker/go-units
   version: 0bbddae09c5a5419a8c6dcdd7ff90da3d450393b
 - name: github.com/emicklei/go-restful
-  version: 7c47e2558a0bbbaba9ecab06bc6681e73028a28a
+  version: c4afa8e5421428d584b32d36d7b35f2c9ae5f823
   subpackages:
   - log
   - swagger
@@ -85,7 +95,7 @@ imports:
   subpackages:
   - proto
 - name: github.com/google/cadvisor
-  version: 7ddf6eb5d1f84363fbc181a498313a880b12ba07
+  version: 51574ec04ff12ca5a50f0935625ec02437191a06
   subpackages:
   - api
   - cache/memory
@@ -159,6 +169,8 @@ imports:
   - libcontainer/utils
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
+- name: github.com/pkg/errors
+  version: a2d6902c6d2a2f194eb3fb474981ab7867c81505
 - name: github.com/prometheus/client_golang
   version: 3b78d7a77f51ccbc364d4bc170920153022cfd08
   subpackages:
@@ -183,7 +195,7 @@ imports:
   - codec
   - codec/codecgen
 - name: golang.org/x/net
-  version: c2528b2dd8352441850638a8bb678c2ad056fd3e
+  version: 62685c2d7ca23c807425dca88b11a3e2323dab41
   subpackages:
   - context
   - context/ctxhttp
@@ -224,7 +236,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: a83829b6f1293c91addabc89d0571c246397bbf4
 - name: k8s.io/kubernetes
-  version: 45aa24b6b759929884fcb7598ec08ce06da95449
+  version: 8ea57733b49bfa862248f67f56e34e48ac16537c
   subpackages:
   - pkg/api
   - pkg/client/unversioned
@@ -255,6 +267,8 @@ imports:
   - pkg/apis/batch
   - pkg/apis/batch/install
   - pkg/apis/batch/v2alpha1
+  - pkg/apis/certificates
+  - pkg/apis/certificates/install
   - pkg/apis/componentconfig/install
   - pkg/apis/extensions
   - pkg/apis/extensions/install
@@ -270,7 +284,7 @@ imports:
   - pkg/watch
   - plugin/pkg/client/auth
   - pkg/util/errors
-  - third_party/forked/reflect
+  - third_party/forked/golang/reflect
   - pkg/util/validation
   - pkg/conversion/queryparams
   - pkg/util/json
@@ -289,6 +303,7 @@ imports:
   - pkg/apis/authorization/v1beta1
   - pkg/apis/autoscaling/v1
   - pkg/apis/batch/v1
+  - pkg/apis/certificates/v1alpha1
   - pkg/apis/componentconfig
   - pkg/apis/componentconfig/v1alpha1
   - pkg/apis/extensions/v1beta1
@@ -316,7 +331,6 @@ imports:
   - pkg/api/util
   - pkg/capabilities
   - pkg/util/integer
-  - pkg/kubelet/qos/util
   - pkg/util/hash
   - pkg/util/net/sets
 devImports: []

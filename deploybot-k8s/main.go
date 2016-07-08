@@ -552,8 +552,9 @@ func (b *Bot) activateIngress(reply ReplyFunc, name string) error {
 			newips[i] = rrd
 		}
 	}
+	reply(":white_check_mark: For domain '" + domain + "'")
 	for i, ing := range ingress.Status.LoadBalancer.Ingress {
-		reply(":up: Registering IP address " + ing.IP)
+		reply(":arrow_heading_up: IP address '" + ing.IP + "' will be regisered")
 		newips[len(oldips)+i] = ing.IP
 	}
 

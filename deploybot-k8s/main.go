@@ -488,9 +488,6 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 			}
 
 			if len(newingress.Status.LoadBalancer.Ingress) > 0 {
-				for _, ing := range newingress.Status.LoadBalancer.Ingress {
-					in.reply(":up: got IP address " + ing.IP)
-				}
 				close(gotIP)
 				return
 			}
@@ -529,7 +526,7 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 		}
 	}
 	for i, ing := range newingress.Status.LoadBalancer.Ingress {
-		in.reply(":up: got IP address " + ing.IP)
+		in.reply(":up: Registering IP address " + ing.IP)
 		newips[len(oldips)+i] = ing.IP
 	}
 

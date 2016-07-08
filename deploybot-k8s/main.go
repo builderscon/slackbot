@@ -240,7 +240,7 @@ func (b *Bot) IngressDelete(in Incoming) (err error) {
 			addr := ingress.Status.LoadBalancer.Ingress[0].IP
 			in.reply(":white_check_mark: ingress has an IP address '" + addr + "'")
 
-			if err := errors.Wrapf(b.deactivateIngress(in.reply, in.Name), "failed to deactivate ingress '%s'", in.Name); err != nil {
+			if err := errors.Wrapf(b.deactivateIngress(in.reply, in.Name, hostname), "failed to deactivate ingress '%s'", in.Name); err != nil {
 				return err
 			}
 
@@ -463,9 +463,12 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 		return err
 	}
 
-	if err := errors.Wrap(b.activateIngress(in.reply, newname), "failed to activate ingress"); err != nil {
-		in.reply(":exclamation: " + err.Error())
-		return err
+	if hostname := newingress.Labels["hostname"]; hostname != "" {
+		in.reply(":white_check_mark: Found associated domain name '" + hostname + "'")
+		if err := errors.Wrap(b.activateIngress(in.reply, newname, hostname), "failed to activate ingress"); err != nil {
+			in.reply(":exclamation: " + err.Error())
+			return err
+		}
 	}
 
 	// It is just way risky to let an automat-piloted program to
@@ -480,7 +483,8 @@ func (b *Bot) IngressCreate(in Incoming) (err error) {
 }
 
 func (b *Bot) IngressActivate(in Incoming) error {
-	if err := b.activateIngress(in.reply, in.Name); err != nil {
+	in.reply(":white_check_mark: Activating ingress " + in.Name + " for domain " + in.Args["domain"])
+	if err := b.activateIngress(in.reply, in.Name, in.Args["domain"]); err != nil {
 		in.reply(":exclamation: Failed to activate ingress: " + err.Error())
 		return err
 	}
@@ -488,7 +492,7 @@ func (b *Bot) IngressActivate(in Incoming) error {
 }
 
 func (b *Bot) IngressDeactivate(in Incoming) error {
-	if err := b.deactivateIngress(in.reply, in.Name); err != nil {
+	if err := b.deactivateIngress(in.reply, in.Name, in.Args["domain"]); err != nil {
 		in.reply(":exclamation: Failed to deactivate ingress: " + err.Error())
 		return err
 	}
@@ -507,15 +511,15 @@ func (b *Bot) fetchDNSResourceRecordSets(domain string) (*dns.ResourceRecordSets
 	return rrslist, nil
 }
 
-func (b *Bot) activateIngress(reply ReplyFunc, name string) error {
+func (b *Bot) activateIngress(reply ReplyFunc, name, domain string) error {
 	reply(":white_check_mark: Updating DNS records...")
 	// dns client doesn't exist (not now, at least), so we access
 	// the api directly. note that latest google.golang.org/cloud is
 	// incompatible with k8s, but google.golang.org/api is OK
 
-	rrslist, err := b.fetchDNSResourceRecordSets(name)
+	rrslist, err := b.fetchDNSResourceRecordSets(domain)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get resource record sets for '%s'", name)
+		return errors.Wrapf(err, "failed to get resource record sets for '%s'", domain)
 	}
 
 	cl, err := unversioned.NewInCluster()
@@ -551,7 +555,7 @@ func (b *Bot) activateIngress(reply ReplyFunc, name string) error {
 		ch.Deletions = []*dns.ResourceRecordSet{
 			&dns.ResourceRecordSet{
 				Kind:    "dns#resourceRecordSet",
-				Name:    name + ".", // need to terminate with a "."
+				Name:    domain + ".", // need to terminate with a "."
 				Rrdatas: oldips,
 				Ttl:     60,
 				Type:    "A",
@@ -561,7 +565,7 @@ func (b *Bot) activateIngress(reply ReplyFunc, name string) error {
 	ch.Additions = []*dns.ResourceRecordSet{
 		&dns.ResourceRecordSet{
 			Kind:    "dns#resourceRecordSet",
-			Name:    name + ".", // need to terminate with a "."
+			Name:    domain + ".", // need to terminate with a "."
 			Rrdatas: newips,
 			Ttl:     60,
 			Type:    "A",
@@ -569,14 +573,14 @@ func (b *Bot) activateIngress(reply ReplyFunc, name string) error {
 	}
 
 	if _, err := b.dns.Changes.Create(b.projectID, b.zone, &ch).Do(); err != nil {
-		reply(":exclamation: failed to change DNS entries for '" + name + "'")
+		reply(":exclamation: failed to change DNS entries for '" + domain + "'")
 		return err
 	}
 
 	return nil
 }
 
-func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
+func (b *Bot) deactivateIngress(reply ReplyFunc, name, domain string) error {
 	cl, err := unversioned.NewInCluster()
 	if err != nil {
 		return errors.Wrap(err, "failed to create k8s client")
@@ -592,13 +596,13 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 		addrs[ing.IP] = struct{}{}
 	}
 
-	rrslist, err := b.fetchDNSResourceRecordSets(name)
+	rrslist, err := b.fetchDNSResourceRecordSets(domain)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get resource record sets for '%s'", name)
+		return errors.Wrapf(err, "failed to get resource record sets for '%s'", domain)
 	}
 
 	if len(rrslist.Rrsets) <= 0 {
-		return errors.Errorf("could not find domain record for '%s'", name)
+		return errors.Errorf("could not find domain record for '%s'", domain)
 	}
 
 	// Theres should be just one Rrsets
@@ -618,10 +622,10 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 	}
 
 	if len(found) == 0 {
-		return errors.Errorf("could not find ip address(es) for domain name '%s'", name)
+		return errors.Errorf("could not find ip address(es) for domain name '%s'", domain)
 	}
 
-	reply(":white_check_mark: Following records will be removed from domain '" + name + "'")
+	reply(":white_check_mark: Following records will be removed from domain '" + domain + "'")
 	for addr := range found {
 		reply(":down: IP address '" + addr + "' will be removed")
 	}
@@ -630,7 +634,7 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 		Deletions: []*dns.ResourceRecordSet{
 			&dns.ResourceRecordSet{
 				Kind:    "dns#resourceRecordSet",
-				Name:    name + ".", // need to terminate with a "."
+				Name:    domain + ".", // need to terminate with a "."
 				Rrdatas: oldips,
 				Ttl:     60,
 				Type:    "A",
@@ -639,7 +643,7 @@ func (b *Bot) deactivateIngress(reply ReplyFunc, name string) error {
 		Additions: []*dns.ResourceRecordSet{
 			&dns.ResourceRecordSet{
 				Kind:    "dns#resourceRecordSet",
-				Name:    name + ".", // need to terminate with a "."
+				Name:    domain + ".", // need to terminate with a "."
 				Rrdatas: newips,
 				Ttl:     60,
 				Type:    "A",

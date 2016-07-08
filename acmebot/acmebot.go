@@ -138,7 +138,7 @@ func (b *Bot) handleLetsEncryptCmd(ctx *acmectx, cmd []string) error {
 }
 
 func (b *Bot) reply(ctx *acmectx, message string) error {
-	return b.postMessage(ctx, ctx.msg.Channel, message)
+	return b.Subscriber.Reply(ctx.msg.Channel, message)
 }
 
 func (b *Bot) postMessage(ctx *acmectx, channel, message string) error {

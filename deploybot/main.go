@@ -230,10 +230,14 @@ func (b *Bot) handleIngressCmd(ctx *ingressctx, cmd []string) error {
 		args.Mode = "get"
 	case "delete":
 		args.Mode = "delete"
-	case "activate":
-		args.Mode = "activate"
-	case "deactivate":
-		args.Mode = "deactivate"
+	case "activate", "deactivate":
+		args.Mode = cmd[0]
+		if len(cmd) < 3 {
+			return ctx.Reply("expected domain name")
+		}
+		args.Args = map[string]string{
+			"domain": cmd[2],
+		}
 	case "create":
 		args.Mode = "create"
 
